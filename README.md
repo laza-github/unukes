@@ -1,7 +1,10 @@
-#unukes
+# unukes
+## Overwrite files with a fixed string and then deletes them.
+
+```
   Usage: 
-   unukes <filename>| [-s Buffer size] | [-t "text to use"]
-   this programm will search the current directory and subdirectory
+   unukes <filename>| [-s Buffer size] | [-t "text to use"]  
+   this programm will search the current directory and subdirectory  
    for the filename doing a string compare IS NOT using regexp 
    The files are nuked with a multiple of 1024Kb 
      -s buffer size default 1024Kb
@@ -14,11 +17,13 @@
       subdirectory. 
    for example: unukes DIR_NAME
        this will destroy directory DIRNAME and all subdirectory. 
+```
    WARNING! This may be a very dangerous program!
-   If you don't know what you're doing, ");
-  DON'T DO IT!!
-#
-/usuck
+   **If you don't know what you're doing, DON'T DO IT!!**
+
+# usuck
+## create a file with a fixed string and a fixed size.
+```
 Copyright 1993-98 by P.H.C. - All Rights Reserved.
 usuck - Unix v1.07a
 Usage:
@@ -27,6 +32,11 @@ Usage:
    -s buffer size default 1048576
    -t uses the text as a pattern for nuking
    default "Copyright 1993-98 by P.H.C. - All Rights Reserved."
+```
  WARNING! This may be a very dangerous program!
- If you don't know what you're doing, DON'T DO IT!!
+ **If you don't know what you're doing, DON'T DO IT!!**
 
+This programs are written with the least library possible, and in standard ANSI C.
+I've included [tinydir](https://github.com/cxong/tinydir) for the search of files in the directory.
+
+they compile on linux, FreeBSD, Cygwin (via x86_64-w64-mingw32-gcc),WSL
