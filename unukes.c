@@ -149,19 +149,20 @@ int main(int argc, char **argv) {
    * do full erase */
   if (all_file == 0) {
     if (stat(nomefile, &statfile) == -1) {
-      perror("lstat");
-      exit(-1);
-    }
-    if ((statfile.st_mode & S_IFMT) == S_IFDIR) {
-      if (debug == 0) {
-        printf("search filename %s is a directory\n", nomefile);
+      printf("\"%s\" file not found using as search in all subdirectories",nomefile);
+/*      exit(-1); */
+    } else {
+      if ((statfile.st_mode & S_IFMT) == S_IFDIR) {
+        if (debug == 0) {
+          printf("search filename %s is a directory\n", nomefile);
+        }
+        if (chdir(nomefile) != 0) {
+          perror("Error chdir filename is a directory");
+          exit(-5);
+        }
+        all_file = 1;
+        dir_search = 1;
       }
-      if (chdir(nomefile) != 0) {
-        perror("Error chdir filename is a directory");
-        exit(-5);
-      }
-      all_file = 1;
-      dir_search = 1;
     }
   }
   done = search_dir(nomefile, SIZE, BUFFER);
