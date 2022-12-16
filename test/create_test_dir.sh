@@ -8,7 +8,9 @@ text_file="`mktemp ${temp_dir}/unukes_text_file.XXXXXXXXXX`"
 echo "temp dir ${temp_dir}"
 echo "text file ${text_file}"
 
-../usuck ${text_file} 1
+dd if=/dev/zero of=${text_file} bs=1024 count=20
+cp ${text_file} ${temp_dir}/test_unukes.txt
+cp ${text_file} ${temp_dir}/test_unukes.text
 cd ${temp_dir}
 for a in 0 1 2 3 4 5 6 7 8 9
 do
