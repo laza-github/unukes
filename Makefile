@@ -28,7 +28,7 @@ ifeq ($(detected_OS),GNU/kFreeBSD)  # Debian kFreeBSD
     CC=gcc
 endif
 ifeq ($(detected_OS),FreeBSD)
-    CC=gcc11
+    CC=gcc
 endif
 ifeq ($(detected_OS),NetBSD)
     CC=gcc
@@ -45,11 +45,14 @@ all: unukes usuck
 
 unukes : unukes.o 
 unukes.o : unukes.c 
-	  $(CC) -c $(CFLAGS) unukes.c
+	$(CC) -c $(CFLAGS) unukes.c -o unukes.o
+	$(CC) unukes.o -o unukes
 
 usuck : usuck.o 
 usuck.o : usuck.c 
-	  $(CC) -c $(CFLAGS) usuck.c
+	$(CC) -c $(CFLAGS) usuck.c -o usuck.o
+	$(CC) usuck.o -o usuck
 
 clean :
 	-rm -f unukes unukes.o usuck usuck.o
+

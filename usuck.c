@@ -1,216 +1,173 @@
-#ifdef linux
+#if defined(linux) || defined(__linux__)
+#include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <linux/limits.h>
-char *version = "Unix v1.07a";
-#elif __FreeBSD__
+char *version = "Unix v1.10";
+#elif defined(__FreeBSD__)
+#include <ctype.h>
 #include <dirent.h>
 #include <fcntl.h>
 #include <limits.h>
-char *version = "Unix v1.07a";
-#endif
-#ifdef __CYGWIN__
-#define NAME_MAX 14
-#define _POSIX_NAME_MAX 14
+char *version = "Unix v1.10";
+#elif defined(__APPLE__) || defined(__MACH__)
+#include <ctype.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <limits.h>
+char *version = "Unix v1.10";
+#elif defined(__CYGWIN__)
+#define NAME_MAX 512
 #define PATH_MAX 512
-#define _POSIX_PATH_MAX 255
-char *version = "Windows v1.07a";
-#elif __MINGW32__
-#define NAME_MAX 14
-#define _POSIX_NAME_MAX 14
+char *version = "Windows v1.10";
+#include <ctype.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <limits.h>
+#elif defined(__MINGW32__) || defined(__MINGW64__)
+#define NAME_MAX 512
 #define PATH_MAX 512
-#define _POSIX_PATH_MAX 255
-char *version = "Windows v1.07a";
-#elif __MINGW64__
-#define NAME_MAX 14
-#define _POSIX_NAME_MAX 14
-#define PATH_MAX 512
-#define _POSIX_PATH_MAX 255
-char *version = "Windows v1.07a";
+char *version = "Windows v1.10";
+#include <ctype.h>
+#else
+#include <ctype.h>
+#include <dirent.h>
+#include <fcntl.h>
+#include <limits.h>
+char *version = "Unix v1.10";
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-int writef(const char *nomefile, const long size, const long SIZE,
-           const char *copy);
+#include "tinydir/tinydir.h"
+
+int writef(const char *nomefile, const long size, const long SIZE, const char *copy);
 void usage(const char *nomefile, const long SIZE, const char *BUFFER);
-char *basename(const char *name);
+char *get_basename(const char *name);
+
 int main(int argc, char *argv[]) {
   long size = 1;
-#ifdef DEBUG
-  int count;
-#endif
-  int mem_need = 0;
-  /* default string */
-  char *BUFFER = "Copyright 1993-98 by P.H.C. - All Rights Reserved.";
-  /* default buffer size */
-  /* long   SIZE=52428;  */
-  long SIZE = 1048576;
-  /* long   SIZE=31457280; */
+  long SIZE = 1048576; /* default buffer size (1MB) */
+  const char *BUFFER = "Copyright 1993-1998 (rewrote in 2022) fixed via gemini in 2026 by P.H.C. - All Rights Reserved.";
+  int opt;
 
   printf("%s\n", BUFFER);
-  printf("%s - %s\n", basename(argv[0]), version);
-#ifdef DEBUG
-  printf("argc, %d\n", argc);
-  for (count = 0; count <= argc; count++) {
-    printf("Argc %d, argv %s\n", count, argv[count]);
+  printf("%s - %s\n", get_basename(argv[0]), version);
+
+  while ((opt = getopt(argc, argv, "s:t:")) != -1) {
+    switch (opt) {
+      case 's':
+        SIZE = atol(optarg);
+        if (SIZE <= 0) {
+          fprintf(stderr, "Error: Buffer size must be greater than 0.\n");
+          exit(-1);
+        }
+        break;
+      case 't':
+        BUFFER = optarg;
+        break;
+      default:
+        usage(get_basename(argv[0]), SIZE, BUFFER);
+        exit(-2);
+    }
   }
-#endif
-  if ((argc < 2)) {
-    usage(basename(argv[0]), SIZE, BUFFER);
+
+  if (argc - optind < 2) {
+    usage(get_basename(argv[0]), SIZE, BUFFER);
     exit(-2);
   }
-  switch (argc) {
-    case 3: /* all defaults read size of file */
-      size = atol(argv[2]);
-      break;
-    case 4: /* impossible not enought elements */
-    case 6: /* impossible not enought elements */
-      usage(basename(argv[0]), SIZE, BUFFER);
-      exit(-2);
-      break;
-    case 5:
-      size = atol(argv[2]);
-#ifdef DEBUG
-      printf("argv[3] %s\n", argv[3]);
-      printf("argv[4] %s\n", argv[4]);
-#endif
-      switch (argv[3][1]) {
-        case 's':
-        case 'S':
-#ifdef DEBUG
-          printf("size %ld\n", SIZE);
-#endif
-          SIZE = atol(argv[4]);
-#ifdef DEBUG
-          printf("size %ld\n", SIZE);
-#endif
-          break;
-        case 't':
-        case 'T':
-#ifdef DEBUG
-          printf("BUFFER %s\n", BUFFER);
-          printf("argv[4] %s\n", argv[4]);
-#endif
-          mem_need = strlen(argv[4]);
-          if (!(BUFFER = malloc(mem_need))) {
-            perror("Main ");
-            exit(-3);
-          }
-          memmove(&BUFFER, &argv[4], strlen(argv[4]));
-#ifdef DEBUG
-          printf("BUFFER %s\n", BUFFER);
-#endif
-          break;
-      }
-      break;
-    case 7:
-      size = atol(argv[2]);
-      switch (argv[3][1]) {
-        case 's':
-        case 'S':
-          SIZE = atol(argv[4]);
-          break;
-        case 't':
-        case 'T':
-#ifdef DEBUG
-          printf("argv[4] %s\n", argv[4]);
-#endif
-          mem_need = strlen(argv[4]);
-          if (!(BUFFER = malloc(mem_need))) {
-            perror("Main ");
-            exit(-3);
-          }
-          memmove(&BUFFER, &argv[4], strlen(argv[4]));
-          break;
-      }
-      switch (argv[5][1]) {
-        case 's':
-        case 'S':
-          SIZE = atol(argv[6]);
-          break;
-        case 't':
-        case 'T':
-#ifdef DEBUG
-          printf("argv[5] %s\n", argv[5]);
-          printf("argv[6] %s\n", argv[6]);
-#endif
-          mem_need = strlen(argv[4]);
-          if (!(BUFFER = malloc(mem_need))) {
-            perror("Main ");
-            exit(-3);
-          }
-          memmove(&BUFFER, &argv[6], strlen(argv[6]));
-          break;
-      }
-      break;
-    default: /* impossible not enought elements */
-      usage(basename(argv[0]), SIZE, BUFFER);
-      exit(-2);
-      break;
+
+  const char *filename = argv[optind];
+  size = atol(argv[optind + 1]);
+
+  if (size <= 0) {
+    fprintf(stderr, "Error: File write multiplier (size) must be greater than 0.\n");
+    exit(-1);
   }
-  mem_need = writef(argv[1], size, SIZE, BUFFER);
-  switch (mem_need) {
-    case 0:
-      printf("\n");
-      exit(0);
-      break;
-    default:
-      exit(mem_need);
-      break;
+
+  int result = writef(filename, size, SIZE, BUFFER);
+  if (result == 0) {
+    printf(" \n");
+    exit(0);
+  } else {
+    exit(result);
   }
 }
 
-int writef(const char *nomefile, const long size, const long SIZE,
-           const char *copy) {
+int writef(const char *nomefile, const long size, const long SIZE, const char *copy) {
   FILE *fp;
   char *buffer;
-  int num;
+  long num;
+  size_t copy_len = strlen(copy);
+
+  if (copy_len == 0) {
+    fprintf(stderr, "Writef Error: Pattern text length cannot be 0.\n");
+    return (-5);
+  }
 
   fp = fopen(nomefile, "wb");
-  if (!(fp)) {
-    perror("Writef ");
+  if (!fp) {
+    perror("Writef (fopen)");
     return (-4);
   }
-  if (!(buffer = malloc(SIZE))) {
-    perror("Writef ");
+
+  buffer = malloc(SIZE);
+  if (!buffer) {
+    perror("Writef (malloc)");
+    fclose(fp);
     return (-3);
   }
-  for (num = 0; num < SIZE / strlen(copy); num++) {
-    memcpy(buffer + (num * strlen(copy)), copy, strlen(copy));
+
+  size_t bytes_written = 0;
+  while (bytes_written + copy_len <= (size_t)SIZE) {
+    memcpy(buffer + bytes_written, copy, copy_len);
+    bytes_written += copy_len;
   }
+  
+  if (bytes_written < (size_t)SIZE) {
+    memcpy(buffer + bytes_written, copy, (size_t)SIZE - bytes_written);
+  }
+
   setvbuf(fp, buffer, _IOFBF, SIZE);
+
   for (num = 0; num < size; num++) {
-    if (fwrite(buffer, 1, SIZE, fp) != SIZE) break;
+    if (fwrite(buffer, 1, SIZE, fp) != (size_t)SIZE) {
+      perror("Writef (fwrite)");
+      break;
+    }
     printf(".");
-    fflush(NULL);
+    fflush(stdout);
   }
-  fflush(NULL);
+
+  printf("\nFile writing complete.");
+  fflush(stdout);
   fclose(fp);
   free(buffer);
   return (0);
 }
+
 void usage(const char *nomefile, const long SIZE, const char *BUFFER) {
-  printf("Usage: \n");
-  printf(" %s <filename> <size> | [-s Buffer size] | [-t \"text to use\"]\n",
-         nomefile);
+  printf("\nUsage: \n");
+  printf(" %s [-s Buffer size] [-t \"text to use\"] <filename> <size>\n", nomefile);
   printf(" The file is created with a multiple of %ld Kb \n", SIZE / 1024);
   printf("   -s buffer size default %ld\n", SIZE);
   printf("   -t uses the text as a pattern for nuking\n");
   printf("   default \"%s\"\n", BUFFER);
   printf(" WARNING! This may be a very dangerous program!\n");
-  printf(" If you don't know what you're doing, ");
-  printf("DON'T DO IT!!\n");
+  printf(" If you don't know what you're doing, DON'T DO IT!!\n");
 }
 
-char *basename(const char *name) {
+char *get_basename(const char *name) {
   const char *base = name;
-
   while (*name) {
-    if (*name == '/') base = name + 1;
+    if (*name == '/' || *name == '\\') base = name + 1;
     ++name;
   }
   return (char *)base;
 }
+
